@@ -115,7 +115,3 @@ with open("test_case1.txt", "ab") as f: # A file named 'test_case.txt' will be c
 
     f.write(b'CIPHERTEXT : ' + repr(ciphertext).encode() + b'\n')
     f.write(b'\n\n\n\n\n')
-    
-
-
-    
