@@ -115,4 +115,37 @@ with open("test_case1.txt", "ab") as f: # A file named 'test_case.txt' will be c
 
     f.write(b'CIPHERTEXT : ' + repr(ciphertext).encode() + b'\n')
     f.write(b'\n\n\n\n\n')
+
+def decrypt(ciphertext, key):
+    k = 1
+    pi1, pi2, pi3, pi4, seed = setup_key(key)
+    blocks = [ciphertext[i:i+H*8] for i in range(0, len(ciphertext), H*8)]
+    plaintext = b''
+    v = [0 for _ in range(H)]
     
+    for i, block in enumerate(blocks):
+        if i % DELTA == 0:
+            v, pi1, pi2, pi3 = update_primitives(v, pi1, pi2, pi3, pi4)
+        
+        if i == 0:
+            v = []
+            for _ in range(H):
+                seed = xorshift64(seed)  # Update seed
+                v.append(seed)
+        
+        x = []
+        for w in range(H):
+            value = v[w] ^ v[pi1[w]] ^ v[pi2[w]]
+            x.append(value)
+        
+        v = [xorshift64(x[w]) for w in range(H)]
+        v = [ror64(v[w], pi1[w]) for w in range(H)]
+        
+        block = struct.unpack(f'{H}Q', block)
+        plaintext += struct.pack(f'{H}Q', *[block[w] ^ v[w] for w in range(H)])
+    
+    return plaintext
+
+#Decrypted Cipher
+decrypted_plaintext = decrypt(ciphertext, key)
+print("Decrypted Plaintext:", decrypted_plaintext.decode('utf-8', errors='ignore'))
